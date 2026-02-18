@@ -30,6 +30,10 @@ function App() {
     ])
     setMembers(membersData)
     setRound(roundData)
+    if (roundData.lastWinner) {
+      setWinner(roundData.lastWinner)
+      setReviewers(roundData.lastReviewers)
+    }
     setLoading(false)
   }
 

@@ -16,6 +16,8 @@ export interface Round {
   picked: PickedEntry[]
   isComplete: boolean
   lastPickedAt: string | null
+  lastWinner: Member | null
+  lastReviewers: Member[]
 }
 
 export interface PickResult {

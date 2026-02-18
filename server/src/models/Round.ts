@@ -11,6 +11,8 @@ export interface IRound extends Document {
   picked: IPickedEntry[]
   isComplete: boolean
   lastPickedAt: Date | null
+  lastWinner: Types.ObjectId | null
+  lastReviewers: Types.ObjectId[]
 }
 
 const RoundSchema = new Schema<IRound>(
@@ -25,6 +27,8 @@ const RoundSchema = new Schema<IRound>(
     ],
     isComplete:   { type: Boolean, default: false },
     lastPickedAt: { type: Date, default: null },
+    lastWinner:   { type: Schema.Types.ObjectId, ref: 'Member', default: null },
+    lastReviewers: [{ type: Schema.Types.ObjectId, ref: 'Member' }],
   },
   {
     toJSON: {

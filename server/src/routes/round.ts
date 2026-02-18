@@ -6,17 +6,22 @@ import { Types } from 'mongoose'
 const router = Router()
 
 router.get('/', async (_req: Request, res: Response) => {
-    let round = await Round.findOne({ isComplete: false }).populate('pickedIds')
+  let round = await Round.findOne({ isComplete: false })
+    .populate('pickedIds')
+    .populate('lastWinner')
+    .populate('lastReviewers')
 
-    if (!round) {
-        const lastRound = await Round.findOne().sort({ number: -1 })
-        round = await Round.create({
-            number: (lastRound?.number ?? 0) + 1
-        })
-        await round.populate('pickedIds')
-    }
+  if (!round) {
+    const lastRound = await Round.findOne().sort({ number: -1 })
+    round = await Round.create({
+      number: (lastRound?.number ?? 0) + 1
+    })
+    await round.populate('pickedIds')
+    await round.populate('lastWinner')
+    await round.populate('lastReviewers')
+  }
 
-    res.json(round)
+  res.json(round)
 })
 
 router.post('/pick', async (_req: Request, res: Response) => {
@@ -61,26 +66,35 @@ router.post('/pick', async (_req: Request, res: Response) => {
     pickedAt: new Date(),
   })
   round.lastPickedAt = new Date()
+  round.lastWinner = winner._id as Types.ObjectId
+  round.lastReviewers = reviewers.map((r) => r._id as Types.ObjectId)
 
   if (round.pickedIds.length === allMembers.length) {
     round.isComplete = true
+    await round.save()
+    await Round.deleteMany({ isComplete: true })
+    const newRound = await Round.create({ number: 1 })
+    res.json({ winner, reviewers, round: newRound })
+    return
   }
 
   await round.save()
   await round.populate('pickedIds')
+  await round.populate('lastWinner')
+  await round.populate('lastReviewers')
 
   res.json({ winner, reviewers, round })
 })
 
 router.delete('/', async (_req: Request, res: Response) => {
-    await Round.updateMany({ isComplete: false }, { isComplete: true })
+  await Round.updateMany({ isComplete: false }, { isComplete: true })
 
-    const lastRound = await Round.findOne().sort({ number: -1 })
-    const newRound = await Round.create({
-        number: (lastRound?.number ?? 0) + 1
-    })
+  const lastRound = await Round.findOne().sort({ number: -1 })
+  const newRound = await Round.create({
+    number: (lastRound?.number ?? 0) + 1
+  })
 
-    res.json(newRound)
+  res.json(newRound)
 })
 
 export default router
