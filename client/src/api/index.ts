@@ -2,7 +2,7 @@ import axios from 'axios'
 import type { Member, Round, PickResult } from '../types'
 
 const api = axios.create({
-    baseURL: 'http://localhost:3001/api',
+    baseURL: 'https://pickme-production.up.railway.app/api',
 })
 
 export const getMembers = async (): Promise<Member[]> => {
@@ -25,8 +25,8 @@ export const getRound = async (): Promise<Round> => {
 }
 
 export const pickMember = async (): Promise<PickResult> => {
-  const { data } = await api.post('/round/pick')
-  return data
+    const { data } = await api.post('/round/pick')
+    return data
 }
 
 export const resetRound = async (): Promise<Round> => {
