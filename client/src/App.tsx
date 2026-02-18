@@ -4,7 +4,6 @@ import { getMembers, addMember, deleteMember, getRound, pickMember, resetRound }
 import MemberList from './components/MemberList'
 import AddMember from './components/AddMember'
 import Spinner from './components/Spinner'
-import dateUtils from './utils/dateUtils'
 import formatDate from './utils/dateUtils'
 
 function App() {
