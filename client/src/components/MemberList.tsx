@@ -1,12 +1,15 @@
-import type { Member } from '../types'
+import type { Member, PickedEntry } from '../types'
 
 interface Props {
   members: Member[]
   pickedIds: string[]
+  picked: PickedEntry[]
   onDelete: (id: string) => void
 }
 
-function MemberList({ members, pickedIds, onDelete }: Props) {
+function MemberList({ members, pickedIds, picked, onDelete }: Props) {
+  console.log('picked:', picked)
+  console.log('members:', members)
   if (members.length === 0) {
     return (
       <p className="text-sm text-gray-400 text-center py-8">
@@ -19,6 +22,7 @@ function MemberList({ members, pickedIds, onDelete }: Props) {
     <ul className="divide-y divide-gray-100 dark:divide-[#3a3a3c]">
       {members.map((member) => {
         const isPicked = pickedIds.includes(member.id)
+        const entry = picked.find((p) => String(p.memberId) === String(member.id))
         return (
           <li
             key={member.id}
@@ -28,8 +32,15 @@ function MemberList({ members, pickedIds, onDelete }: Props) {
               <span className={`text-sm font-medium ${isPicked ? 'line-through' : ''}`}>
                 {member.name}
               </span>
-              {isPicked && (
-                <span className="text-xs text-gray-400">picked</span>
+              {isPicked && entry && (
+                <span className="text-xs text-gray-400">
+                  picked · {new Date(entry.pickedAt).toLocaleString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </span>
               )}
             </div>
             <button

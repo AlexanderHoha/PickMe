@@ -46,6 +46,7 @@ function App() {
 
   const handlePick = async () => {
     const { winner: picked, reviewers: pickedReviewers, round: updatedRound } = await pickMember()
+    console.log('updatedRound.picked:', updatedRound.picked)
     setWinner(picked)
     setReviewers(pickedReviewers)
     setRound(updatedRound)
@@ -136,9 +137,9 @@ function App() {
         <MemberList
           members={members}
           pickedIds={pickedIds}
+          picked={round?.picked ?? []}
           onDelete={handleDelete}
         />
-
       </div>
     </div>
   )
