@@ -1,4 +1,5 @@
 import type { Member, PickedEntry } from '../types'
+import formatDate from '../utils/dateUtils'
 
 interface Props {
   members: Member[]
@@ -34,12 +35,7 @@ function MemberList({ members, pickedIds, picked, onDelete }: Props) {
               </span>
               {isPicked && entry && (
                 <span className="text-xs text-gray-400">
-                  picked · {new Date(entry.pickedAt).toLocaleString('en-GB', {
-                    day: '2-digit',
-                    month: 'short',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  picked · {formatDate(entry.pickedAt)}
                 </span>
               )}
             </div>

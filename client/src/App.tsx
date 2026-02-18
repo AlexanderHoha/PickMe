@@ -4,6 +4,8 @@ import { getMembers, addMember, deleteMember, getRound, pickMember, resetRound }
 import MemberList from './components/MemberList'
 import AddMember from './components/AddMember'
 import Spinner from './components/Spinner'
+import dateUtils from './utils/dateUtils'
+import formatDate from './utils/dateUtils'
 
 function App() {
   const [members, setMembers] = useState<Member[]>([])
@@ -109,7 +111,7 @@ function App() {
                 ) : (
                   <>
                     <div className="p-6 border-b border-gray-100 dark:border-[#3a3a3c]">
-                      <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">PR creator</p>
+                      {round?.lastPickedAt && <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">PR creator · Picked at {formatDate(round?.lastPickedAt)}</p>}
                       <img src="/GAGAGA-4x.png" className="w-20 h-20 object-contain"></img>
                       <p className="text-2xl font-semibold">{winner?.name}</p>
                     </div>
