@@ -86,6 +86,75 @@ router.post('/pick', async (_req: Request, res: Response) => {
   res.json({ winner, reviewers, round })
 })
 
+router.post('/repick', async (_req: Request, res: Response) => {
+  let round = await Round.findOne({ isComplete: false })
+
+  if (!round || !round.lastWinner) {
+    res.status(400).json({ message: 'No winner to repick' })
+    return
+  }
+
+  const allMembers = await Member.find()
+  const winnerId = round.lastWinner as Types.ObjectId
+
+  // Remove last winner from pickedIds
+  round.pickedIds = round.pickedIds.filter((id) => !id.equals(winnerId))
+  round.picked = round.picked.filter((p) => !p.memberId.equals(winnerId))
+
+  // Pick new winner from remaining
+  const available = allMembers.filter(
+    (m) => !round!.pickedIds.some((id) => id.equals(m._id as Types.ObjectId))
+  )
+
+  if (available.length === 0) {
+    res.status(400).json({ message: 'No available participants' })
+    return
+  }
+
+  const shuffled = available.sort(() => Math.random() - 0.5)
+  const newWinner = shuffled[0]
+
+  round.pickedIds.push(newWinner._id as Types.ObjectId)
+  round.picked.push({
+    memberId: newWinner._id as Types.ObjectId,
+    pickedAt: new Date(),
+  })
+  round.lastWinner = newWinner._id as Types.ObjectId
+  round.lastPickedAt = new Date()
+
+  await round.save()
+  await round.populate('pickedIds')
+  await round.populate('lastWinner')
+  await round.populate('lastReviewers')
+
+  res.json({ winner: newWinner, reviewers: round.lastReviewers, round })
+})
+
+router.post('/repick-reviewers', async (_req: Request, res: Response) => {
+  let round = await Round.findOne({ isComplete: false })
+
+  if (!round || !round.lastWinner) {
+    res.status(400).json({ message: 'No round to repick reviewers' })
+    return
+  }
+
+  const allMembers = await Member.find()
+  const winnerId = round.lastWinner as Types.ObjectId
+
+  const reviewerPool = allMembers
+    .filter((m) => !m._id.equals(winnerId))
+    .sort(() => Math.random() - 0.5)
+  const reviewers = reviewerPool.slice(0, 3)
+
+  round.lastReviewers = reviewers.map((r) => r._id as Types.ObjectId)
+  await round.save()
+  await round.populate('pickedIds')
+  await round.populate('lastWinner')
+  await round.populate('lastReviewers')
+
+  res.json({ reviewers, round })
+})
+
 router.delete('/', async (_req: Request, res: Response) => {
   await Round.updateMany({ isComplete: false }, { isComplete: true })
 

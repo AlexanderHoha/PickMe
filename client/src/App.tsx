@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { Member, Round } from './types'
-import { getMembers, addMember, deleteMember, getRound, pickMember, resetRound } from './api'
+import { getMembers, addMember, deleteMember, getRound, pickMember, resetRound, repickMember, repickReviewers } from './api'
 import MemberList from './components/MemberList'
 import AddMember from './components/AddMember'
 import Spinner from './components/Spinner'
@@ -13,6 +13,8 @@ function App() {
   const [reviewers, setReviewers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
   const [picking, setPicking] = useState(false)
+  const [repicking, setRepicking] = useState(false)
+  const [repickingReviewers, setRepickingReviewers] = useState(false)
   const [resetting, setResetting] = useState(false)
   const [dark, setDark] = useState(() => {
     return localStorage.getItem('theme') === 'dark'
@@ -73,7 +75,24 @@ function App() {
     setResetting(false)
   }
 
-  const pickedIds = round?.pickedIds.map((m) => m.id) ?? []
+  const handleRepickWinner = async () => {
+    setRepicking(true)
+    const { winner: picked, reviewers: pickedReviewers, round: updatedRound } = await repickMember()
+    setWinner(picked)
+    setReviewers(pickedReviewers)
+    setRound(updatedRound)
+    setRepicking(false)
+  }
+
+  const handleRepickReviewers = async () => {
+    setRepickingReviewers(true)
+    const { reviewers: pickedReviewers, round: updatedRound } = await repickReviewers()
+    setReviewers(pickedReviewers)
+    setRound(updatedRound)
+    setRepickingReviewers(false)
+  }
+
+  const pickedIds = (round?.pickedIds ?? []).map((m) => m.id)
   const remaining = members.length - pickedIds.length
 
   return (
@@ -144,6 +163,26 @@ function App() {
             >
               {picking ? 'Picking...' : 'Pick random'}
             </button>
+
+            {/* Repick buttons - shown when there's a winner */}
+            {winner && (
+              <div className="flex gap-2 mb-3">
+                <button
+                  onClick={handleRepickWinner}
+                  disabled={repicking}
+                  className="flex-1 py-2 bg-blue-600 dark:bg-blue-500 text-white text-xs font-medium rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-gray-200 dark:disabled:bg-[#2c2c2e] disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  {repicking ? 'Repicking...' : 'Repick winner'}
+                </button>
+                <button
+                  onClick={handleRepickReviewers}
+                  disabled={repickingReviewers}
+                  className="flex-1 py-2 bg-purple-600 dark:bg-purple-500 text-white text-xs font-medium rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 disabled:bg-gray-200 dark:disabled:bg-[#2c2c2e] disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  {repickingReviewers ? 'Repicking...' : 'Repick reviewers'}
+                </button>
+              </div>
+            )}
 
             {/* Reset button */}
             <button
