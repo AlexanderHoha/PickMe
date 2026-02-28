@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { Member, Round } from './types'
-import { getMembers, addMember, deleteMember, getRound, pickMember, resetRound, repickMember, repickReviewers } from './api'
+import { getMembers, addMember, deleteMember, getRound, pickMember, resetRound, repickMember, repickReviewers, pickMemberManually } from './api'
 import MemberList from './components/MemberList'
 import AddMember from './components/AddMember'
 import Spinner from './components/Spinner'
@@ -65,6 +65,13 @@ function App() {
     setRound(updatedRound)
     setPicking(false)
   }
+
+  const handlePickManually = async (id: string) => {
+  const { winner: picked, round: updatedRound } = await pickMemberManually(id)
+  setWinner(picked)
+  setReviewers([])
+  setRound(updatedRound)
+}
 
   const handleReset = async () => {
     setResetting(true)
@@ -211,6 +218,7 @@ function App() {
               pickedIds={pickedIds}
               picked={round?.picked ?? []}
               onDelete={handleDelete}
+              onPickManually={handlePickManually}
             />
           </>
         )}

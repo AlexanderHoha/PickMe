@@ -6,9 +6,10 @@ interface Props {
   pickedIds: string[]
   picked: PickedEntry[]
   onDelete: (id: string) => void
+  onPickManually: (id: string) => void
 }
 
-function MemberList({ members, pickedIds, picked, onDelete }: Props) {
+function MemberList({ members, pickedIds, picked, onDelete, onPickManually }: Props) {
   console.log('picked:', picked)
   console.log('members:', members)
   if (members.length === 0) {
@@ -39,6 +40,11 @@ function MemberList({ members, pickedIds, picked, onDelete }: Props) {
                 </span>
               )}
             </div>
+            <button
+              onClick={() => onPickManually(member.id)}
+              className="text-xs text-gray-300 dark:text-gray-600 hover:text-red-400 transition-colors">
+              pick manually
+            </button>
             <button
               onClick={() => onDelete(member.id)}
               className="text-xs text-gray-300 dark:text-gray-600 hover:text-red-400 transition-colors"

@@ -86,6 +86,66 @@ router.post('/pick', async (_req: Request, res: Response) => {
   res.json({ winner, reviewers, round })
 })
 
+router.post('/pick-manual', async (req: Request, res: Response) => {
+  const { memberId } = req.body
+
+  if (!memberId) {
+    res.status(400).json({ message: 'memberId is required' })
+    return
+  }
+
+  let round = await Round.findOne({ isComplete: false })
+
+  if (!round) {
+    const lastRound = await Round.findOne().sort({ number: -1 })
+    round = await Round.create({
+      number: (lastRound?.number ?? 0) + 1
+    })
+  }
+
+  const winner = await Member.findById(memberId)
+
+  if (!winner) {
+    res.status(404).json({ message: 'Member not found' })
+    return
+  }
+
+  const alreadyPicked = round.pickedIds.some((id) =>
+    id.equals(winner._id as Types.ObjectId)
+  )
+  if (alreadyPicked) {
+    res.status(400).json({ message: 'Member already picked this round' })
+    return
+  }
+
+  round.pickedIds.push(winner._id as Types.ObjectId)
+  round.picked.push({
+    memberId: winner._id as Types.ObjectId,
+    pickedAt: new Date(),
+  })
+  round.lastPickedAt = new Date()
+  round.lastWinner = winner._id as Types.ObjectId
+  round.lastReviewers = []
+
+  const allMembers = await Member.find()
+
+  if (round.pickedIds.length === allMembers.length) {
+    round.isComplete = true
+    await round.save()
+    await Round.deleteMany({ isComplete: true })
+    const newRound = await Round.create({ number: 1 })
+    res.json({ winner, round: newRound })
+    return
+  }
+
+  await round.save()
+  await round.populate('pickedIds')
+  await round.populate('lastWinner')
+  await round.populate('lastReviewers')
+
+  res.json({ winner, round })
+})
+
 router.post('/repick', async (_req: Request, res: Response) => {
   let round = await Round.findOne({ isComplete: false })
 
